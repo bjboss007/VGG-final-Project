@@ -1,52 +1,50 @@
-//package com.vgg.fvp.common.security;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.context.annotation.Import;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.SecurityConfig;
-//import org.springframework.security.authentication.AuthenticationManager;
-//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-//import org.springframework.web.bind.annotation.PostMapping;
-//import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RequestMapping;
-//import org.springframework.web.bind.annotation.RestController;
-//
-//import javax.servlet.ServletException;
-//import javax.validation.Valid;
-//import java.io.IOException;
-//import java.util.ArrayList;
-//
-//
-//@Import(SecurityConfig.class)
-//@RestController
-//@RequestMapping("/api/fvp/login")
-//public class LoginController {
-//
-//    @Autowired
-//    private final JwtAuthenticationFilter authenticationFilter;
-//
-//
-//    private AuthenticationManager authenticationManager;
-//
-//    public LoginController(JwtAuthenticationFilter authenticationFilter) {
-//        this.authenticationFilter = authenticationFilter;
-//    }
-//
-//    @PostMapping("")
-//    public ResponseEntity login(@Valid @RequestBody LoginViewModel loginViewModel) throws IOException, ServletException {
-//
-//        authenticate(loginViewModel);
-//        String token = authenticationFilter.generatToken(loginViewModel.getUsername());
-//
-//        return ResponseEntity.ok(token);
-//    }
-//
-//    public void authenticate(LoginViewModel loginViewModel){
-//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-//                loginViewModel.getUsername(),
-//                loginViewModel.getPassword(),
-//                new ArrayList<>()
-//        );
-//        this.authenticationManager.authenticate(authenticationToken);
-//    }
-//}
+package com.vgg.fvp.common.security;
+
+import com.vgg.fvp.common.utils.AppResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.ServletException;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.util.ArrayList;
+
+
+@RestController
+@RequestMapping("/api/fvp/v1/")
+public class LoginController {
+
+    private JwtProvider tokenProvider;
+    private AuthenticationManager authenticationManager;
+
+    public LoginController(JwtProvider tokenProvider, AuthenticationManager authenticationManager) {
+        this.tokenProvider = tokenProvider;
+        this.authenticationManager = authenticationManager;
+    }
+
+    @PostMapping("auth")
+    public ResponseEntity login(@Valid @RequestBody LoginViewModel loginViewModel) throws IOException, ServletException {
+        Authentication authentication = authenticate(loginViewModel);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateToken(authentication);
+        return ResponseEntity.ok(new AppResponse(jwt, "Bearer"));
+    }
+
+    public Authentication authenticate(LoginViewModel loginViewModel){
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                loginViewModel.getUsername(),
+                loginViewModel.getPassword(),
+                new ArrayList<>()
+        );
+        Authentication authenticate =  authenticationManager.authenticate(authenticationToken);
+
+        return authenticate;
+    }
+}

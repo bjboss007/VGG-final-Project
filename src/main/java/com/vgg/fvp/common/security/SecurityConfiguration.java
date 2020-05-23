@@ -3,6 +3,7 @@ package com.vgg.fvp.common.security;
 import com.vgg.fvp.common.data.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,23 +27,35 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.userPrincipalDetailsService = userPrincipalDetailsService;
         this.repository = repository;
     }
+
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth){
         auth.authenticationProvider(authenticationProvider());
     }
 
     @Override
+    @Bean
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .cors().and()
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+//                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), this.repository))
                 .authorizeRequests()
                 .antMatchers("/api/fvp/vendors/**").permitAll()
-                .antMatchers("/api/fvp/v1/vendors/**").permitAll()
-                .antMatchers("/api/fvp/customers/**").permitAll()
+//                .antMatchers("/api/fvp/v1/vendors/**").permitAll()
+                .antMatchers("/api/fvp/login").permitAll()
+                .antMatchers("/api/fvp/customers/register").permitAll()
+                .antMatchers("/api/fvp/customers/**/set-password").permitAll()
+                .antMatchers("/api/fvp/customers/**").hasRole("CUSTOMER")
 //                .antMatchers("/api/fvp/v1/vendors/**").hasRole("VENDOR")
                 .antMatchers("/api/fvp/v1/customers/**").hasRole("CUSTOMER")
                 .anyRequest().authenticated();

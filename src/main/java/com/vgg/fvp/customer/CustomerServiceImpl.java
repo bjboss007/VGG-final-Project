@@ -1,9 +1,6 @@
 package com.vgg.fvp.customer;
 
-import com.vgg.fvp.common.data.Role;
-import com.vgg.fvp.common.data.RoleRepository;
-import com.vgg.fvp.common.data.User;
-import com.vgg.fvp.common.data.UserRepository;
+import com.vgg.fvp.common.data.*;
 import com.vgg.fvp.customer.dto.CustomerDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,15 +16,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     private CustomerRepository repo;
     private PasswordEncoder passwordEncoder;
-    private UserRepository userRepo;
     private RoleRepository roleRepo;
+    private UserService userService;
 
     @Autowired
-    public CustomerServiceImpl(CustomerRepository repo, PasswordEncoder passwordEncoder, UserRepository userRepo, RoleRepository roleRepo) {
+    public CustomerServiceImpl(CustomerRepository repo, PasswordEncoder passwordEncoder, RoleRepository roleRepo, UserService userService) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
-        this.userRepo = userRepo;
         this.roleRepo = roleRepo;
+        this.userService = userService;
     }
 
     @Override
@@ -60,7 +57,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer addUser(Customer customer, String password) {
-        User user = createUser(customer.getEmail(), password);
+        User user = userService.createUser(customer.getEmail(), password, Role.UserType.CUSTOMER.getType());
         customer.setUser(user);
         return repo.save(customer);
     }
@@ -84,13 +81,4 @@ public class CustomerServiceImpl implements CustomerService {
         return customer;
     }
 
-    public User createUser(String email, String password){
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        Role role = roleRepo.findRoleByName(Role.UserType.CUSTOMER.getType());
-        user.setRole(role);
-        userRepo.save(user);
-        return user;
-    }
 }

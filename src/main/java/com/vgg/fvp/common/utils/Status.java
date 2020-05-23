@@ -6,7 +6,9 @@ public enum Status {
     SENT("sent"),
     READY("ready"),
     CANCELLED("cancelled"),
-    PAID("paid");
+    PAID("paid"),
+    NOT_PAID("not_paid");
+
     private final String status;
     Status(String s){
 		this.status = s;

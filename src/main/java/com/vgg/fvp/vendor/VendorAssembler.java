@@ -1,5 +1,6 @@
 package com.vgg.fvp.vendor;
 
+import com.vgg.fvp.common.data.PasswordDTO;
 import com.vgg.fvp.customer.Customer;
 import com.vgg.fvp.customer.CustomerController;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class VendorAssembler implements RepresentationModelAssembler<Vendor, EntityModel<Vendor>> {
 
-    Pageable pageable = PageRequest.of(1,2);
+    Pageable pageable = PageRequest.of(1,10);
     @Override
     public EntityModel<Vendor> toModel(Vendor vendor) {
         EntityModel<Vendor> vendorResource = new EntityModel<>(vendor,
@@ -25,7 +26,7 @@ public class VendorAssembler implements RepresentationModelAssembler<Vendor, Ent
                 linkTo(methodOn(VendorController.class).getAllVendors(pageable)).withRel("vendors"));
 
         if(vendor.getUser() == null){
-            CustomerController.Password password = new CustomerController.Password();
+            PasswordDTO password = new PasswordDTO();
             vendorResource.add(
                     linkTo(methodOn(VendorController.class).addUser(vendor.getId(), password)).withRel("set-password")
             );

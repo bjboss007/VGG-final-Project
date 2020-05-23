@@ -18,6 +18,7 @@ public class Orderl extends AbstractEntity {
     private BigDecimal amountPaid;
     private BigDecimal amountOutstanding;
     private String orderStatus;
+    private String paymentStatus;
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
@@ -67,6 +68,14 @@ public class Orderl extends AbstractEntity {
 
     public String getOrderStatus() {
         return orderStatus;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
     public void setOrderStatus(String orderStatus) {

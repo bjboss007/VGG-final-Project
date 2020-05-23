@@ -1,6 +1,7 @@
 package com.vgg.fvp.vendor;
 
-import com.vgg.fvp.common.exceptions.MethodNotAllowedException;
+import com.vgg.fvp.common.data.PasswordDTO;
+import com.vgg.fvp.common.exceptions.BadRequestException;
 import com.vgg.fvp.common.exceptions.ObjectNotFoundException;
 import com.vgg.fvp.common.utils.Status;
 import com.vgg.fvp.customer.CustomerController;
@@ -9,16 +10,17 @@ import com.vgg.fvp.order.OrderService;
 import com.vgg.fvp.order.Orderl;
 import com.vgg.fvp.vendor.dto.VendorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -33,14 +35,16 @@ public class VendorController {
     private OrderAssembler orderAssembler;
     private OrderService orderService;
     private PagedResourcesAssembler<Vendor> pagedResourcesAssembler;
+    private PagedResourcesAssembler<Orderl> orderlPagedResourcesAssembler;
 
     @Autowired
-    public VendorController(VendorService vendorService, VendorAssembler assembler, OrderAssembler orderAssembler, OrderService orderService, PagedResourcesAssembler pagedResourcesAssembler) {
+    public VendorController(VendorService vendorService, VendorAssembler assembler, OrderAssembler orderAssembler, OrderService orderService, PagedResourcesAssembler pagedResourcesAssembler, PagedResourcesAssembler<Orderl> orderlPagedResourcesAssembler) {
         this.vendorService = vendorService;
         this.assembler = assembler;
         this.orderAssembler = orderAssembler;
         this.orderService = orderService;
         this.pagedResourcesAssembler = pagedResourcesAssembler;
+        this.orderlPagedResourcesAssembler = orderlPagedResourcesAssembler;
     }
 
     @PostMapping("register")
@@ -73,7 +77,7 @@ public class VendorController {
     }
 
     @PostMapping("{id}/set-password")
-    public ResponseEntity<RepresentationModel> addUser(@PathVariable("id") Long id, @RequestBody CustomerController.Password password){
+    public ResponseEntity<RepresentationModel> addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
         Vendor existingVendor = vendorService.getVendor(id).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
         Vendor vendor = vendorService.addUser(existingVendor, password.getPassword());
         return ResponseEntity.ok(assembler.toModel(vendor));
@@ -87,17 +91,34 @@ public class VendorController {
             Orderl order2 = orderService.UpdateOrderStatus(order);
             return ResponseEntity.ok(orderAssembler.toModel(order2));
         }
-        throw new MethodNotAllowedException("You can not update a completed order");
+        throw new BadRequestException("You can not update a completed order");
     }
 
+//    @GetMapping("{vendorId}/orders")
+//    public CollectionModel<EntityModel<Orderl>> getAllOrders(@PathVariable("vendorId") Long vendorId, Pageable pa){
+//        Vendor vendor = vendorService.getVendor(vendorId).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
+//        Page<Orderl> orders = orderService.getAllOrdersByVendor(vendor, pa);
+//        List<EntityModel<Orderl>> allOrders = orderService.getAllOrdersByVendor(vendor).stream()
+//                .map(order -> orderAssembler.toModel(order))
+//                .collect(Collectors.toList());
+//
+////        return new CollectionModel<>(allOrders, linkTo(methodOn(VendorController.class).getAllOrders(vendorId)).withSelfRel());
+//    }
+//
     @GetMapping("{vendorId}/orders")
-    public CollectionModel<EntityModel<Orderl>> getAllOrders(@PathVariable("vendorId") Long vendorId){
+    public ResponseEntity<PagedModel<EntityModel<Orderl>>> getAllOrders(@PathVariable("vendorId") Long vendorId, Pageable page){
         Vendor vendor = vendorService.getVendor(vendorId).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
-        List<EntityModel<Orderl>> allOrders = orderService.getAllOrdersByVendor(vendor).stream()
-                .map(order -> orderAssembler.toModel(order))
-                .collect(Collectors.toList());
+        Page<Orderl> orders = orderService.getAllOrdersByVendor(vendor, page);
+        PagedModel<EntityModel<Orderl>> orderEntities = orderlPagedResourcesAssembler
+                .toModel(orders, orderAssembler);
+        return  ResponseEntity.ok(orderEntities);
+    }
 
-        return new CollectionModel<>(allOrders, linkTo(methodOn(VendorController.class).getAllOrders(vendorId)).withSelfRel());
+    @GetMapping("{vendorId}/report")
+    public ResponseEntity getReport(@PathVariable("vendorId") Long vendorId){
+        Vendor vendor = vendorService.getVendor(vendorId).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
+        Map<String, Object> report = vendorService.generateReport(vendor);
+        return ResponseEntity.ok(report);
     }
 
 }

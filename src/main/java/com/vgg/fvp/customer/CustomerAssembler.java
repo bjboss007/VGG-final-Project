@@ -1,5 +1,6 @@
 package com.vgg.fvp.customer;
 
+import com.vgg.fvp.common.data.PasswordDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
@@ -23,7 +24,7 @@ public class CustomerAssembler implements RepresentationModelAssembler<Customer,
 
 
         if(customer.getUser() == null){
-            CustomerController.Password password = new CustomerController.Password();
+            PasswordDTO password = new PasswordDTO();
             customerResource.add(
                     linkTo(methodOn(CustomerController.class).addUser(customer.getId(), password)).withRel("set-password")
             );

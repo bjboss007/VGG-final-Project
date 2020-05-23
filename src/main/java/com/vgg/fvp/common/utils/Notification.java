@@ -4,11 +4,13 @@ import com.vgg.fvp.common.data.AbstractEntity;
 import com.vgg.fvp.common.data.User;
 
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class Notification extends AbstractEntity {
 
     private String message;
+    @ManyToOne
     private User subjectUser;
     private String messageStatus;
 

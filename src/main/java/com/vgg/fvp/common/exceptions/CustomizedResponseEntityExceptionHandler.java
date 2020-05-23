@@ -39,8 +39,8 @@ public class  CustomizedResponseEntityExceptionHandler extends ResponseEntityExc
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(MethodNotAllowedException.class)
-    public final ResponseEntity<Object> MethodNotAllowedE(MethodNotAllowedException ex, WebRequest request) throws Exception {
+    @ExceptionHandler(BadRequestException.class)
+    public final ResponseEntity<Object> MethodNotAllowedE(BadRequestException ex, WebRequest request) throws Exception {
         ExceptionResponse exceptionResponse = new ExceptionResponse(
                 new Date(),
                 ex.getMessage(),
@@ -59,4 +59,17 @@ public class  CustomizedResponseEntityExceptionHandler extends ResponseEntityExc
         return new ResponseEntity(exceptionResponse, HttpStatus.BAD_GATEWAY);
 
     }
+
+    @ExceptionHandler(JwtException.class)
+    protected ResponseEntity<Object> handleMethodArgumentNotValidJWT(JwtException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity(exceptionResponse, HttpStatus.UNAUTHORIZED);
+
+    }
+
+
 }
