@@ -3,6 +3,7 @@ package com.vgg.fvp.common.security;
 import com.vgg.fvp.common.data.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -47,20 +48,27 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-//                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), this.repository))
                 .authorizeRequests()
-                .antMatchers("/api/fvp/vendors/**").permitAll()
-//                .antMatchers("/api/fvp/v1/vendors/**").permitAll()
-                .antMatchers("/api/fvp/login").permitAll()
-                .antMatchers("/api/fvp/customers/register").permitAll()
-                .antMatchers("/api/fvp/customers/**/set-password").permitAll()
-                .antMatchers("/api/fvp/customers/**").hasRole("CUSTOMER")
-//                .antMatchers("/api/fvp/v1/vendors/**").hasRole("VENDOR")
-                .antMatchers("/api/fvp/v1/customers/**").hasRole("CUSTOMER")
+                .antMatchers("/api/fvp/v1/auth",
+                        "/api/fvp/v1/customers/**/set-password",
+                        "/api/fvp/v1/vendors/**/set-password",
+                        "/api/fvp/v1/customers/register").permitAll()
+
+                .antMatchers(HttpMethod.GET,"/api/fvp/customers/**", "/api/fvp/vendors/**").permitAll()
+
+                .antMatchers(HttpMethod.POST,"/api/fvp/v1/customers/**").hasRole("CUSTOMER")
+                .antMatchers(HttpMethod.DELETE,"/api/fvp/v1/customers/**").hasRole("CUSTOMER")
+                .antMatchers(HttpMethod.PUT,"/api/fvp/v1/customers/**").hasRole("CUSTOMER")
+
+                .antMatchers(HttpMethod.POST,"/api/fvp/v1/vendors/**").hasRole("VENDOR")
+                .antMatchers(HttpMethod.DELETE,"/api/fvp/v1/vendors/**").hasRole("VENDOR")
+                .antMatchers(HttpMethod.PUT,"/api/fvp/v1/vendors/**").hasRole("VENDOR")
+
+                .antMatchers("/api/fvp/v1/sendmail").hasAnyRole("VENDOR","CUSTOMER")
+
                 .anyRequest().authenticated();
     }
-
 
     @Bean
     DaoAuthenticationProvider authenticationProvider(){

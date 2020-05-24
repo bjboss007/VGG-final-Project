@@ -5,6 +5,10 @@ public class AppResponse {
     private String data;
     private String type;
 
+    public AppResponse(String data) {
+        this.data = data;
+    }
+
     public AppResponse(String data, String type) {
         this.data = data;
         this.type = type;

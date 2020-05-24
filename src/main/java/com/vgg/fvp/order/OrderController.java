@@ -2,14 +2,12 @@ package com.vgg.fvp.order;
 
 import com.vgg.fvp.common.exceptions.ObjectNotFoundException;
 import com.vgg.fvp.common.utils.AppResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +15,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/fvp/orders/")
+@RequestMapping("/api/fvp/v1/orders/")
 public class OrderController {
 
     private OrderService orderService;

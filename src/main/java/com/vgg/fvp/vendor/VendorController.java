@@ -3,31 +3,29 @@ package com.vgg.fvp.vendor;
 import com.vgg.fvp.common.data.PasswordDTO;
 import com.vgg.fvp.common.exceptions.BadRequestException;
 import com.vgg.fvp.common.exceptions.ObjectNotFoundException;
+import com.vgg.fvp.common.utils.AppResponse;
 import com.vgg.fvp.common.utils.Status;
-import com.vgg.fvp.customer.CustomerController;
 import com.vgg.fvp.order.OrderAssembler;
 import com.vgg.fvp.order.OrderService;
 import com.vgg.fvp.order.Orderl;
 import com.vgg.fvp.vendor.dto.VendorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.*;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/fvp/vendors/")
+@RequestMapping("/api/fvp/v1/vendors/")
 public class VendorController {
 
     private VendorService vendorService;
@@ -60,14 +58,6 @@ public class VendorController {
         return assembler.toModel(vendor);
     }
 
-//    @GetMapping("")
-//    public CollectionModel<EntityModel<Vendor>> getAllVendors (){
-//        List<EntityModel<Vendor>> vendors = vendorService.getAllVendors().stream()
-//                .map(vendor -> assembler.toModel(vendor))
-//                .collect(Collectors.toList());
-//        return new CollectionModel<>(vendors,
-//                linkTo(methodOn(VendorController.class).getAllVendors()).withSelfRel());
-//    }
     @GetMapping("")
     public ResponseEntity<PagedModel<EntityModel<Vendor>>> getAllVendors (Pageable pageable){
         Page<Vendor> vendors = vendorService.getAllVendors(pageable);
@@ -77,10 +67,10 @@ public class VendorController {
     }
 
     @PostMapping("{id}/set-password")
-    public ResponseEntity<RepresentationModel> addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
+    public ResponseEntity addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
         Vendor existingVendor = vendorService.getVendor(id).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
-        Vendor vendor = vendorService.addUser(existingVendor, password.getPassword());
-        return ResponseEntity.ok(assembler.toModel(vendor));
+        vendorService.addUser(existingVendor, password.getPassword());
+        return ResponseEntity.ok(new AppResponse("Password successfully set", "success"));
     }
 
     @PutMapping("{vendorId}/orders/{orderId}/updateStatus")
@@ -94,17 +84,6 @@ public class VendorController {
         throw new BadRequestException("You can not update a completed order");
     }
 
-//    @GetMapping("{vendorId}/orders")
-//    public CollectionModel<EntityModel<Orderl>> getAllOrders(@PathVariable("vendorId") Long vendorId, Pageable pa){
-//        Vendor vendor = vendorService.getVendor(vendorId).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
-//        Page<Orderl> orders = orderService.getAllOrdersByVendor(vendor, pa);
-//        List<EntityModel<Orderl>> allOrders = orderService.getAllOrdersByVendor(vendor).stream()
-//                .map(order -> orderAssembler.toModel(order))
-//                .collect(Collectors.toList());
-//
-////        return new CollectionModel<>(allOrders, linkTo(methodOn(VendorController.class).getAllOrders(vendorId)).withSelfRel());
-//    }
-//
     @GetMapping("{vendorId}/orders")
     public ResponseEntity<PagedModel<EntityModel<Orderl>>> getAllOrders(@PathVariable("vendorId") Long vendorId, Pageable page){
         Vendor vendor = vendorService.getVendor(vendorId).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));

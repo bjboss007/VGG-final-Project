@@ -1,9 +1,12 @@
 package com.vgg.fvp.order;
 
+import com.vgg.fvp.common.data.User;
 import com.vgg.fvp.common.data.UserService;
 import com.vgg.fvp.common.exceptions.BadRequestException;
 import com.vgg.fvp.common.exceptions.ObjectNotFoundException;
 import com.vgg.fvp.common.smtp.EmailService;
+import com.vgg.fvp.common.utils.Notification;
+import com.vgg.fvp.common.utils.NotificationRepository;
 import com.vgg.fvp.common.utils.Status;
 import com.vgg.fvp.customer.Customer;
 import com.vgg.fvp.customer.CustomerRepository;
@@ -36,6 +39,8 @@ public class OrderServiceImpl implements OrderService {
     private UserService userService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private NotificationRepository notificationRepo;
 
     private final LocalDateTime now = LocalDateTime.now();
     private final Long tenMinutes = Long.valueOf(10 * 60 * 1000);
@@ -56,6 +61,8 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomer(customer);
         order = repo.save(order);
         sendOrderSuccessful(menu.getVendor().getEmail(), customer.getEmail());
+        String message = "Customer " + customer.getFullName() + "just placed an order on " + menu.getName();
+        createNotification(menu.getVendor().getUser(), message);
         return order;
     }
 
@@ -81,9 +88,10 @@ public class OrderServiceImpl implements OrderService {
     public Orderl UpdateOrderStatus(Orderl order) {
         order.setOrderStatus(Status.DELIVERED.getStatus());
         sendOrderPickUp(order.getVendor().getEmail(), order.getCustomer().getEmail());
+        String message = "Your order of "+ order.getItemsOrdered().get(0).getName() + "is ready";
+        createNotification(order.getCustomer().getUser(), message);
         return repo.save(order) ;
     }
-
 
     @Override
     public Orderl cancelOrder(Orderl order) {
@@ -91,6 +99,8 @@ public class OrderServiceImpl implements OrderService {
         if(userService.isCustomer(username) && order.getCustomer().getEmail().equalsIgnoreCase(username)){
             if(isWithin(order.getCreateOn(), this.now)){
                 order.setOrderStatus(Status.CANCELLED.toString());
+                String message = "Order of has been cancelled by " + order.getCustomer();
+                createNotification(order.getVendor().getUser(), message);
                 return repo.save(order);
             }else
                 throw new BadRequestException("You can not cancel order after 10 minutes");
@@ -148,11 +158,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public boolean isWithin(LocalDateTime then, LocalDateTime now){
-        Long diff = Duration.between(then,now).toMillis();
-        if(diff <= this.tenMinutes){
-            return true;
-        }
-        return false;
+        long diff = Duration.between(then,now).toMillis();
+        return diff <= this.tenMinutes;
     }
 
     public String loggedInUsername(){
@@ -174,5 +181,13 @@ public class OrderServiceImpl implements OrderService {
         String title = "Your Order is ready";
         String details = "Thank You for patronizing us, Your order is ready for pick up";
         emailService.sendMail(from, toEmail, subject, title, details);
+    }
+
+    public void createNotification(User user, String message){
+        Notification n = new Notification();
+        n.setSubjectUser(user);
+        n.setMessage(message);
+        n.setMessageStatus(Status.SENT.getStatus());
+        notificationRepo.save(n);
     }
 }

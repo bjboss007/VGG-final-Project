@@ -1,35 +1,36 @@
 package com.vgg.fvp.vendor;
 
-import com.vgg.fvp.common.data.*;
+import com.vgg.fvp.common.data.Role;
+import com.vgg.fvp.common.data.User;
+import com.vgg.fvp.common.data.UserService;
+import com.vgg.fvp.common.exceptions.BadRequestException;
 import com.vgg.fvp.common.utils.Status;
 import com.vgg.fvp.order.OrderService;
 import com.vgg.fvp.order.Orderl;
 import com.vgg.fvp.vendor.dto.VendorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import org.springframework.data.domain.Pageable;
-
 import java.math.BigDecimal;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class VendorServiceImpl implements VendorService {
 
     private VendorRepository repo;
-    private RoleRepository roleRepo;
-    private PasswordEncoder passwordEncoder;
     private UserService userService;
     private OrderService orderService;
 
     @Autowired
-    public VendorServiceImpl(VendorRepository repo, RoleRepository roleRepo, PasswordEncoder passwordEncoder, UserService userService, OrderService orderService) {
+    public VendorServiceImpl(VendorRepository repo, UserService userService, OrderService orderService) {
         this.repo = repo;
-        this.roleRepo = roleRepo;
-        this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.orderService = orderService;
     }
@@ -65,9 +66,12 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     public Vendor addUser(Vendor vendor, String password) {
-        User user = userService.createUser(vendor.getEmail(), password, Role.UserType.VENDOR.getType());
-        vendor.setUser(user);
-        return repo.save(vendor);
+        if (vendor.getUser() == null){
+            User user = userService.createUser(vendor.getEmail(), password, Role.UserType.VENDOR.getType());
+            vendor.setUser(user);
+            return repo.save(vendor);
+        }
+        throw new BadRequestException("Vendor already has a user");
     }
 
     @Override
@@ -82,7 +86,7 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     public Map<String, Object> generateReport(Vendor vendor) {
-        List<Orderl> totalOrders = orderService.getAllOrdersByVendor(vendor);
+        List<Orderl> totalOrders = orderService.getAllOrdersByVendor(vendor).stream().filter(order -> order.getCreateOn().toLocalDate().isEqual(LocalDate.now())).collect(Collectors.toList());
         List<Orderl> paidOrders = totalOrders.stream().filter(order -> order.getPaymentStatus().equalsIgnoreCase(Status.PAID.getStatus())).collect(Collectors.toList());
         List<Orderl> unpaidOrders = totalOrders.stream().filter(order -> order.getPaymentStatus().equalsIgnoreCase(Status.NOT_PAID.getStatus())).collect(Collectors.toList());
         BigDecimal amountPaid = paidOrders.stream().map(Orderl::getAmountDue).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -94,6 +98,7 @@ public class VendorServiceImpl implements VendorService {
         report.put("Total amount sales paid", amountPaid );
         report.put("Total amount sales not paid", amountNotPaid );
         return report;
+
     }
 
     public Vendor mapper(VendorDTO vendorDTO){

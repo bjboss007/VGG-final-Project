@@ -61,14 +61,13 @@ public class  CustomizedResponseEntityExceptionHandler extends ResponseEntityExc
     }
 
     @ExceptionHandler(JwtException.class)
-    protected ResponseEntity<Object> handleMethodArgumentNotValidJWT(JwtException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    public final ResponseEntity<Object> JwtTokenException(JwtException ex, WebRequest request) throws Exception {
         ExceptionResponse exceptionResponse = new ExceptionResponse(
                 new Date(),
                 ex.getMessage(),
-                request.getDescription(false)
+                request.getDescription(false).toString()
         );
-        return new ResponseEntity(exceptionResponse, HttpStatus.UNAUTHORIZED);
-
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);
     }
 
 

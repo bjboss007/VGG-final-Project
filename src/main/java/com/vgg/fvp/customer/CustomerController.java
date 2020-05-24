@@ -1,17 +1,21 @@
 package com.vgg.fvp.customer;
 
 import com.vgg.fvp.common.data.PasswordDTO;
+import com.vgg.fvp.common.exceptions.ObjectNotFoundException;
+import com.vgg.fvp.common.utils.AppResponse;
 import com.vgg.fvp.common.utils.Status;
+import com.vgg.fvp.customer.dto.CustomerDTO;
 import com.vgg.fvp.order.OrderAssembler;
 import com.vgg.fvp.order.OrderService;
 import com.vgg.fvp.order.Orderl;
-import com.vgg.fvp.common.exceptions.ObjectNotFoundException;
-import com.vgg.fvp.customer.dto.CustomerDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.*;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.mediatype.vnderrors.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/api/fvp/customers/")
+@RequestMapping("/api/fvp/v1/customers/")
 public class CustomerController {
     @Autowired
     private CustomerService customerService;
@@ -34,7 +38,7 @@ public class CustomerController {
     private PagedResourcesAssembler<Customer> pagedResourcesAssembler;
 
 
-    @PostMapping("customers/register")
+    @PostMapping("register")
     public ResponseEntity<EntityModel<Customer>> register(@Valid @RequestBody CustomerDTO customerDTO){
         Customer customer = customerService.create(customerDTO);
         EntityModel<Customer> customerEntityModel = assembler.toModel(customer);
@@ -56,10 +60,12 @@ public class CustomerController {
     }
 
     @PostMapping("{id}/set-password")
-    public ResponseEntity<RepresentationModel> addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
+    public ResponseEntity addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
         Customer existingCustomer = customerService.getCustomer(id).orElseThrow(() -> new ObjectNotFoundException("Customer Not Found"));
-        Customer customer = customerService.addUser(existingCustomer, password.getPassword());
-        return ResponseEntity.ok(assembler.toModel(customer));
+        customerService.addUser(existingCustomer, password.getPassword());
+        return ResponseEntity.ok(new AppResponse("Password successfully set", "success"));
+
+
     }
 
     @PostMapping("{id}/menus/{menuId}/order")

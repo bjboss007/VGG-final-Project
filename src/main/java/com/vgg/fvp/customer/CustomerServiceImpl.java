@@ -1,11 +1,13 @@
 package com.vgg.fvp.customer;
 
-import com.vgg.fvp.common.data.*;
+import com.vgg.fvp.common.data.Role;
+import com.vgg.fvp.common.data.User;
+import com.vgg.fvp.common.data.UserService;
+import com.vgg.fvp.common.exceptions.BadRequestException;
 import com.vgg.fvp.customer.dto.CustomerDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,15 +17,11 @@ import java.util.Optional;
 public class CustomerServiceImpl implements CustomerService {
 
     private CustomerRepository repo;
-    private PasswordEncoder passwordEncoder;
-    private RoleRepository roleRepo;
     private UserService userService;
 
     @Autowired
-    public CustomerServiceImpl(CustomerRepository repo, PasswordEncoder passwordEncoder, RoleRepository roleRepo, UserService userService) {
+    public CustomerServiceImpl(CustomerRepository repo, UserService userService) {
         this.repo = repo;
-        this.passwordEncoder = passwordEncoder;
-        this.roleRepo = roleRepo;
         this.userService = userService;
     }
 
@@ -57,9 +55,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer addUser(Customer customer, String password) {
-        User user = userService.createUser(customer.getEmail(), password, Role.UserType.CUSTOMER.getType());
-        customer.setUser(user);
-        return repo.save(customer);
+        if(customer.getUser() == null){
+            User user = userService.createUser(customer.getEmail(), password, Role.UserType.CUSTOMER.getType());
+            customer.setUser(user);
+            return repo.save(customer);
+        }
+        throw new BadRequestException("Customer already has a user");
     }
 
     @Override

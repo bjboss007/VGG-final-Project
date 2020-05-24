@@ -1,5 +1,6 @@
 package com.vgg.fvp.common.data;
 
+import com.vgg.fvp.common.exceptions.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,12 +39,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(String email, String password, String type) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        Role role = roleRepo.findRoleByName(Role.UserType.CUSTOMER.getType());
-        user.setRole(role);
-        userRepo.save(user);
-        return user;
+        User existingUser = repo.findUserByEmail(email);
+        if(existingUser == null){
+            User user = new User();
+            user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(password));
+            Role role = roleRepo.findRoleByName(Role.UserType.CUSTOMER.getType());
+            user.setRole(role);
+            userRepo.save(user);
+            return user;
+        }
+        throw new BadRequestException("User already exist with the email");
     }
 }
