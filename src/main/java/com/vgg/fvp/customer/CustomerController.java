@@ -60,7 +60,7 @@ public class CustomerController {
     }
 
     @PostMapping("{id}/set-password")
-    public ResponseEntity addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
+    public ResponseEntity addUser(@PathVariable("id") Long id,@Valid @RequestBody PasswordDTO password){
         Customer existingCustomer = customerService.getCustomer(id).orElseThrow(() -> new ObjectNotFoundException("Customer Not Found"));
         customerService.addUser(existingCustomer, password.getPassword());
         return ResponseEntity.ok(new AppResponse("Password successfully set", "success"));

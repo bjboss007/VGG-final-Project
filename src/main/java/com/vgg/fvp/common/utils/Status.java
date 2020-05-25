@@ -4,10 +4,11 @@ public enum Status {
     IN_PROGRESS("in_progress"),
     DELIVERED("delivered"),
     SENT("sent"),
-    READY("ready"),
     CANCELLED("cancelled"),
     PAID("paid"),
-    NOT_PAID("not_paid");
+    NOT_PAID("not_paid"),
+    READ("read"),
+    UNREAD("unread");
 
     private final String status;
     Status(String s){

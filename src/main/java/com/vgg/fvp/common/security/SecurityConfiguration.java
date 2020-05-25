@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -29,6 +30,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.repository = repository;
     }
 
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/v2/api-docs",
+                "/configuration/ui",
+                "/swagger-resources/**",
+                "/configuration/security",
+                "/swagger-ui.html",
+                "/webjars/**");
+    }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth){
@@ -53,9 +63,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/fvp/v1/auth",
                         "/api/fvp/v1/customers/**/set-password",
                         "/api/fvp/v1/vendors/**/set-password",
-                        "/api/fvp/v1/customers/register").permitAll()
+                        "/api/fvp/v1/customers/register",
+                        "/api/fvp/v1/vendors/register",
+                        "/api/fvp/v1/notifications/**").permitAll()
 
-                .antMatchers(HttpMethod.GET,"/api/fvp/customers/**", "/api/fvp/vendors/**").permitAll()
+                .antMatchers(HttpMethod.GET,"/api/fvp/v1/customers/**", "/api/fvp/v1/vendors/**").permitAll()
 
                 .antMatchers(HttpMethod.POST,"/api/fvp/v1/customers/**").hasRole("CUSTOMER")
                 .antMatchers(HttpMethod.DELETE,"/api/fvp/v1/customers/**").hasRole("CUSTOMER")

@@ -4,6 +4,8 @@ import com.vgg.fvp.common.exceptions.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -22,19 +24,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isCustomer(String email) {
         User user = repo.findUserByEmail(email);
-        if (user.getRole().getName() == Role.UserType.CUSTOMER.getType()){
-            return true;
-        }
-        return false;
+        return user.getRole().getName().equals(Role.UserType.CUSTOMER.getType());
     }
 
     @Override
     public boolean isVendor(String email) {
         User user = repo.findUserByEmail(email);
-        if (user.getRole().getName() == Role.UserType.VENDOR.getType()){
-            return true;
-        }
-        return false;
+        return user.getRole().getName().equals(Role.UserType.VENDOR.getType());
     }
 
     @Override
@@ -50,5 +46,10 @@ public class UserServiceImpl implements UserService {
             return user;
         }
         throw new BadRequestException("User already exist with the email");
+    }
+
+    @Override
+    public Optional<User> getUser(Long id) {
+        return repo.findById(id);
     }
 }

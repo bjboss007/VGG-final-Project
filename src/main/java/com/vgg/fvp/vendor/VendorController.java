@@ -67,7 +67,7 @@ public class VendorController {
     }
 
     @PostMapping("{id}/set-password")
-    public ResponseEntity addUser(@PathVariable("id") Long id, @RequestBody PasswordDTO password){
+    public ResponseEntity addUser(@PathVariable("id") Long id, @Valid @RequestBody PasswordDTO password){
         Vendor existingVendor = vendorService.getVendor(id).orElseThrow(() -> new ObjectNotFoundException("Vendor Not Found"));
         vendorService.addUser(existingVendor, password.getPassword());
         return ResponseEntity.ok(new AppResponse("Password successfully set", "success"));

@@ -64,7 +64,6 @@ public class MenuServiceImpl implements MenuService{
 
     @Override
     public Page<Menu> getMenusByVendor(Vendor vendor, Pageable pageable) {
-        System.out.println("I got here too");
         List<Menu> menuList = getMenusByVendor(vendor);
 //        return repo.findMenusByVendor(vendor, pageable);
         int start = (int)pageable.getOffset();

@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
         if(userService.isCustomer(username) && order.getCustomer().getEmail().equalsIgnoreCase(username)){
             if(isWithin(order.getCreateOn(), this.now)){
                 order.setOrderStatus(Status.CANCELLED.toString());
-                String message = "Order of has been cancelled by " + order.getCustomer();
+                String message = "Order has been cancelled by " + order.getCustomer();
                 createNotification(order.getVendor().getUser(), message);
                 return repo.save(order);
             }else
@@ -187,7 +187,7 @@ public class OrderServiceImpl implements OrderService {
         Notification n = new Notification();
         n.setSubjectUser(user);
         n.setMessage(message);
-        n.setMessageStatus(Status.SENT.getStatus());
+        n.setMessageStatus(Status.UNREAD.getStatus());
         notificationRepo.save(n);
     }
 }
