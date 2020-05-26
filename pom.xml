@@ -12,7 +12,7 @@
     <artifactId>fvp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>fvp</name>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <description>Demo project for Spring Boot</description>
 
     <properties>
@@ -86,6 +86,13 @@
             <artifactId>springfox-swagger-ui</artifactId>
             <version>2.9.2</version>
         </dependency>
+                     
+         <dependency>
+             <groupId>org.postgresql</groupId>
+             <artifactId>postgresql</artifactId>
+             <version>42.2.12</version>
+         </dependency>
+
 
 
         <!--        <dependency>-->
