@@ -1,6 +1,8 @@
 package com.vgg.fvp.common.data;
 
 import com.vgg.fvp.common.exceptions.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +42,7 @@ public class UserServiceImpl implements UserService {
             User user = new User();
             user.setEmail(email);
             user.setPassword(passwordEncoder.encode(password));
-            Role role = roleRepo.findRoleByName(Role.UserType.CUSTOMER.getType());
+            Role role = roleRepo.findRoleByName(type);
             user.setRole(role);
             userRepo.save(user);
             return user;
@@ -51,5 +53,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> getUser(Long id) {
         return repo.findById(id);
+    }
+
+    @Override
+    public Page<User> getAllUsers(Pageable pageable) {
+        return repo.findAll(pageable);
     }
 }
