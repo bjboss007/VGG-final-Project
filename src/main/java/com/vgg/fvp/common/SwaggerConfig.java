@@ -16,7 +16,7 @@ import java.util.*;
 
 @Configuration("Swagger")
 @EnableSwagger2
-public class SwaggerConfig implements WeMvcConfigurer {
+public class SwaggerConfig implements WebMvcConfigurer {
 
 
     public static final Contact DEFAULT_CONTACT = new Contact("Muhammad Habib Mobolaji", "", "mobolajihabib@gmail.com");
