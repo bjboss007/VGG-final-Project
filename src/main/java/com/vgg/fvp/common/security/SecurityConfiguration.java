@@ -60,7 +60,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), this.repository))
                 .authorizeRequests()
-                .antMatchers("/api/fvp/v1/auth","/api/fvp/v1/all-users",
+                .antMatchers("/api/fvp/v1/auth","/api/fvp/v1/all-users","/",
                         "/api/fvp/v1/customers/**/set-password",
                         "/api/fvp/v1/vendors/**/set-password",
                         "/api/fvp/v1/customers/register",
